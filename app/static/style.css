@@ -103,3 +103,101 @@ label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px
 .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .muted { color: var(--muted); font-size: 13px; }
 .amount { color: var(--accent); font-weight: 700; }
+
+/* --- landing page --- */
+.hero {
+  padding: 40px 0 32px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.hero h1 {
+  font-size: 30px;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+.hero p.tagline {
+  color: var(--muted);
+  font-size: 15px;
+  max-width: 520px;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+.flow-steps {
+  display: flex;
+  gap: 0;
+  margin-top: 8px;
+}
+.flow-step {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  position: relative;
+}
+.flow-step:not(:last-child) { border-right: none; }
+.flow-step:first-child { border-radius: 8px 0 0 8px; }
+.flow-step:last-child { border-radius: 0 8px 8px 0; }
+.flow-step .num {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.flow-step .label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.flow-step .who {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 16px;
+  padding: 0 6px;
+}
+.guardrail-note {
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--muted);
+  border-left: 2px solid #7a5cf0;
+  padding-left: 10px;
+}
+.guardrail-note strong { color: #a390f5; }
+.section-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+.project-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s;
+}
+.project-card:hover { border-color: #3a3a45; }
+.project-card .meta {
+  display: flex;
+  gap: 14px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+.empty-state .big { font-size: 32px; margin-bottom: 8px; }
+
+@media (max-width: 640px) {
+  .flow-steps { flex-direction: column; }
+  .flow-step:not(:last-child) { border-right: 1px solid var(--border); border-bottom: none; }
+  .flow-step:first-child { border-radius: 8px 8px 0 0; }
+  .flow-step:last-child { border-radius: 0 0 8px 8px; }
+}

@@ -1,21 +1,63 @@
 {% extends "base.html" %}
 {% block content %}
+  <div class="hero">
+    <h1>Milestone Escrow Agent</h1>
+    <p class="tagline">
+      Payment is held per milestone until work is actually delivered.
+      An AI layer reviews every submission and flags anything that looks
+      weak or incomplete &mdash; but only a human ever releases the money.
+    </p>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="num">01</div>
+        <div class="label">Fund Milestone</div>
+        <div class="who">Client &middot; Razorpay test-mode order</div>
+      </div>
+      <div class="flow-step">
+        <div class="num">02</div>
+        <div class="label">Submit Deliverable</div>
+        <div class="who">Freelancer</div>
+      </div>
+      <div class="flow-step">
+        <div class="num">03</div>
+        <div class="label">AI Reviews &amp; Flags</div>
+        <div class="who">Advisory only &mdash; no payment authority</div>
+      </div>
+      <div class="flow-step">
+        <div class="num">04</div>
+        <div class="label">Release or Dispute</div>
+        <div class="who">Client &middot; human decision, always</div>
+      </div>
+    </div>
+
+    <p class="guardrail-note">
+      <strong>The guardrail:</strong> remove the AI review module entirely
+      and the escrow flow still works correctly &mdash; it just loses the
+      review assist. Money only ever moves on an explicit human action.
+    </p>
+  </div>
+
   <div class="row" style="justify-content: space-between; align-items: center;">
-    <p class="muted">Projects, each split into escrow-held milestones.</p>
+    <p class="section-label" style="margin:0;">Projects</p>
     <a class="btn" href="/projects/new">+ New Project</a>
   </div>
 
   {% if not projects %}
-    <div class="card">
-      <p class="muted">No projects yet. Create one to see the escrow flow in action.</p>
+    <div class="card empty-state">
+      <div class="big">&#128274;</div>
+      <p>No projects yet.</p>
+      <p style="font-size:13px;">Create one to see funding, delivery, AI review, and release in action.</p>
     </div>
   {% endif %}
 
   {% for p in projects %}
-    <a class="card" style="display:block; text-decoration:none; color:inherit;" href="/projects/{{ p.id }}">
-      <h2>{{ p.title }}</h2>
-      <p class="muted">{{ p.client_name }} (client) &rarr; {{ p.freelancer_name }} (freelancer)</p>
-      <p class="muted">{{ p.milestones|length }} milestone(s)</p>
+    <a class="card project-card" href="/projects/{{ p.id }}">
+      <h2 style="margin-bottom:4px;">{{ p.title }}</h2>
+      <div class="meta">
+        <span>{{ p.client_name }} (client) &rarr; {{ p.freelancer_name }} (freelancer)</span>
+        <span>{{ p.milestones|length }} milestone{{ 's' if p.milestones|length != 1 else '' }}</span>
+      </div>
     </a>
   {% endfor %}
 {% endblock %}
