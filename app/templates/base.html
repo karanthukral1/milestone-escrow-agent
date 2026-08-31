@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Milestone Escrow Agent</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <a href="/"><h1>&#128274; Milestone Escrow Agent</h1></a>
+    {% if mock_mode %}
+      <span class="badge">Razorpay: MOCK MODE (no test keys set)</span>
+    {% else %}
+      <span class="badge" style="background:#163a24;color:#4caf7d;border-color:#4caf7d;">Razorpay: TEST MODE (live)</span>
+    {% endif %}
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

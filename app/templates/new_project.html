@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <h2>New Project</h2>
+    <form method="post" action="/projects">
+      <label>Project Title</label>
+      <input name="title" placeholder="e.g. Landing page redesign" required />
+
+      <label>Client Name</label>
+      <input name="client_name" placeholder="e.g. Acme Corp" required />
+
+      <label>Freelancer Name</label>
+      <input name="freelancer_name" placeholder="e.g. Priya Sharma" required />
+
+      <button type="submit">Create Project</button>
+    </form>
+  </div>
+{% endblock %}

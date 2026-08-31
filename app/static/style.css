@@ -1,0 +1,105 @@
+:root {
+  --bg: #0b0b0f;
+  --card: #15151c;
+  --border: #26262f;
+  --text: #e9e9ee;
+  --muted: #8b8b98;
+  --accent: #f2a13b;
+  --green: #4caf7d;
+  --red: #e0605a;
+  --blue: #5b8cf2;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0 0 60px;
+}
+header {
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header h1 { font-size: 20px; margin: 0; }
+header a { color: var(--text); text-decoration: none; }
+.badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #3a2c14;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+main { max-width: 860px; margin: 0 auto; padding: 24px 20px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card h2 { margin-top: 0; font-size: 17px; }
+.card h3 { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+a.btn, button {
+  background: var(--accent);
+  color: #1a1a1a;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button.secondary, a.btn.secondary { background: #2a2a33; color: var(--text); }
+button.danger, a.btn.danger { background: var(--red); color: white; }
+button.ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+input, textarea {
+  width: 100%;
+  background: #0e0e13;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+.status-pill {
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.s-pending_funding { background: #2a2a33; color: var(--muted); }
+.s-funded { background: #1c3a5e; color: var(--blue); }
+.s-delivered { background: #2c3a2c; color: var(--green); }
+.s-flagged { background: #3a2c14; color: var(--accent); }
+.s-released { background: #163a24; color: var(--green); }
+.s-disputed { background: #3a1c1c; color: var(--red); }
+.s-refunded { background: #2a2a33; color: var(--muted); }
+.milestone { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
+.ai-box {
+  background: #14141c;
+  border: 1px solid #2a2440;
+  border-left: 3px solid #7a5cf0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin: 10px 0;
+}
+.ai-box .label { color: #a390f5; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+.flags { color: var(--accent); font-size: 12px; }
+.audit-trail { font-size: 12px; color: var(--muted); margin-top: 12px; }
+.audit-trail li { margin-bottom: 4px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.muted { color: var(--muted); font-size: 13px; }
+.amount { color: var(--accent); font-weight: 700; }

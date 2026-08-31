@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block content %}
+  <p><a href="/" class="muted">&larr; All projects</a></p>
+  <div class="card">
+    <h2>{{ project.title }}</h2>
+    <p class="muted">Client: <strong>{{ project.client_name }}</strong> &nbsp;|&nbsp; Freelancer: <strong>{{ project.freelancer_name }}</strong></p>
+  </div>
+
+  {% for m in project.milestones %}
+    <div class="card">
+      <div class="row" style="justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h3>Milestone</h3>
+          <h2 style="margin:0;">{{ m.title }}</h2>
+          <p class="muted">{{ m.scope_description }}</p>
+          <p class="amount">Rs. {{ "%.0f"|format(m.amount_inr) }}</p>
+        </div>
+        <span class="status-pill s-{{ m.status.value }}">{{ m.status.value.replace('_',' ') }}</span>
+      </div>
+
+      {% if m.status.value == "pending_funding" %}
+        <form method="post" action="/milestones/{{ m.id }}/fund">
+          <button type="submit">Fund Milestone (hold in escrow)</button>
+        </form>
+
+      {% elif m.status.value == "funded" %}
+        <div class="milestone">
+          <p class="muted">Order: {{ m.razorpay_order_id }}</p>
+          <h3>Freelancer: submit deliverable</h3>
+          <form method="post" action="/milestones/{{ m.id }}/deliver">
+            <label>Deliverable link (repo, doc, drive folder, etc.)</label>
+            <input name="deliverable_link" placeholder="https://..." />
+            <label>Note to client</label>
+            <textarea name="deliverable_note" rows="3" placeholder="What did you deliver against the scope above?"></textarea>
+            <button type="submit">Submit Deliverable</button>
+          </form>
+        </div>
+
+      {% elif m.status.value in ("delivered", "flagged", "disputed") %}
+        <div class="milestone">
+          <p class="muted">Submitted link: <a href="{{ m.deliverable_link }}" target="_blank">{{ m.deliverable_link }}</a></p>
+          <p class="muted">Freelancer note: "{{ m.deliverable_note }}"</p>
+
+          {% if m.ai_summary %}
+            <div class="ai-box">
+              <div class="label">AI review (advisory only — does not release funds)</div>
+              <p style="margin: 6px 0;">{{ m.ai_summary }}</p>
+              <p style="margin: 0;">Recommendation: <strong>{{ m.ai_recommendation }}</strong>
+              {% if m.ai_flags %}
+                &nbsp;|&nbsp; <span class="flags">Flags: {{ m.ai_flags }}</span>
+              {% endif %}
+              </p>
+            </div>
+          {% endif %}
+
+          {% if m.status.value == "disputed" %}
+            <p class="muted">Status: disputed by client. Client can still release (if resolved off-platform) or refund.</p>
+          {% endif %}
+
+          <div class="row">
+            <form method="post" action="/milestones/{{ m.id }}/release">
+              <button type="submit">Client: Release Payment</button>
+            </form>
+            {% if m.status.value != "disputed" %}
+            <form method="post" action="/milestones/{{ m.id }}/dispute">
+              <input type="hidden" name="reason" value="Client disputed deliverable" />
+              <button type="submit" class="danger">Client: Dispute</button>
+            </form>
+            {% else %}
+            <form method="post" action="/milestones/{{ m.id }}/refund">
+              <button type="submit" class="secondary">Client: Refund</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+
+      {% elif m.status.value == "released" %}
+        <p class="muted">&#9989; Payment released to {{ project.freelancer_name }}.</p>
+
+      {% elif m.status.value == "refunded" %}
+        <p class="muted">&#8617; Refunded to {{ project.client_name }}.</p>
+      {% endif %}
+
+      {% if m.events %}
+      <details class="audit-trail">
+        <summary>Audit trail ({{ m.events|length }} events)</summary>
+        <ul>
+          {% for e in m.events %}
+            <li>
+              <strong>{{ e.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</strong>
+              — [{{ e.actor }}] {{ e.action }}
+              {% if e.from_status or e.to_status %} ({{ e.from_status }} &rarr; {{ e.to_status }}){% endif %}
+              {% if e.detail %}<br/><span style="opacity:0.8;">{{ e.detail }}</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <div class="card">
+    <h2>Add Milestone</h2>
+    <form method="post" action="/projects/{{ project.id }}/milestones">
+      <label>Title</label>
+      <input name="title" placeholder="e.g. Milestone 1: Wireframes" required />
+      <label>Scope description (what counts as done)</label>
+      <textarea name="scope_description" rows="2" placeholder="e.g. Figma wireframes for 5 core screens, delivered as a shared link" required></textarea>
+      <label>Amount (INR)</label>
+      <input name="amount_inr" type="number" step="1" placeholder="10000" required />
+      <button type="submit">Add Milestone</button>
+    </form>
+  </div>
+{% endblock %}
