@@ -42,6 +42,25 @@ python3 -m uvicorn app.main:app --reload
 
 Visit http://localhost:8000
 
+### Measuring AI review accuracy
+
+`app/benchmark.py` runs the same `ai_review.review_deliverable()` function
+the live app uses against a labeled batch of 10 synthetic submissions (5
+clearly good, 5 clearly weak/suspicious) and reports accuracy:
+
+```bash
+python3 -m app.benchmark
+```
+
+Current result: **10/10 (100%)**, 0 false positives, 0 false negatives.
+
+This is an initial benchmark, not a claim of production-grade accuracy —
+the flag rules are deterministic (missing link, vague note, no scope
+overlap), so they're expected to do well on clear-cut cases like these.
+The honest next step with more time would be expanding this set with
+genuinely ambiguous, borderline submissions to find where the simple
+rules actually break.
+
 ### Optional: real Razorpay test-mode keys
 
 Without any keys set, the app runs in **mock mode** — it fabricates

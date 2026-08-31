@@ -113,22 +113,40 @@ def add_milestone(
 @app.post("/milestones/{milestone_id}/fund")
 def fund_milestone(milestone_id: int, db: Session = Depends(get_db)):
     m = db.query(Milestone).get(milestone_id)
-    if m.status != MilestoneStatus.PENDING_FUNDING:
+    if m is None:
+        return RedirectResponse("/", status_code=303)
+
+    # --- idempotency guard ---
+    # This is an atomic UPDATE...WHERE, not a read-then-write check. Two
+    # simultaneous "Fund Milestone" clicks (double-click, retried request,
+    # whatever) both pass the read-only check above, but only ONE of them
+    # can win this atomic claim -- the other gets rowcount=0 and bails out
+    # BEFORE any Razorpay order is created. Without this, a race could
+    # create two orders for the same milestone and silently drop the first
+    # order_id when the second write lands.
+    claimed = (
+        db.query(Milestone)
+        .filter(Milestone.id == milestone_id, Milestone.status == MilestoneStatus.PENDING_FUNDING)
+        .update({"status": MilestoneStatus.FUNDED, "updated_at": datetime.utcnow()})
+    )
+    db.commit()
+
+    if claimed == 0:
+        # Someone else already funded this milestone (or it was never in
+        # PENDING_FUNDING to begin with) -- no order created, no duplicate.
         return RedirectResponse(f"/projects/{m.project_id}", status_code=303)
 
+    db.refresh(m)
     order = razorpay_client.create_hold_order(
         amount_inr=m.amount_inr,
         receipt=f"milestone_{m.id}",
         notes={"milestone_title": m.title, "project_id": str(m.project_id)},
     )
     m.razorpay_order_id = order["id"]
-    old_status = m.status
-    m.status = MilestoneStatus.FUNDED
-    m.updated_at = datetime.utcnow()
     log_event(
         db, m, "client", "milestone_funded",
         f"Razorpay order {order['id']} (mock={order.get('mock')})",
-        from_status=old_status, to_status=m.status,
+        from_status=MilestoneStatus.PENDING_FUNDING, to_status=MilestoneStatus.FUNDED,
     )
     db.commit()
     return RedirectResponse(f"/projects/{m.project_id}", status_code=303)
@@ -142,15 +160,34 @@ def deliver_milestone(
     db: Session = Depends(get_db),
 ):
     m = db.query(Milestone).get(milestone_id)
-    if m.status != MilestoneStatus.FUNDED:
+    # Allow this route from FUNDED (first submission) or DISPUTED (freelancer
+    # fixing a disputed deliverable and resubmitting).
+    if m.status not in (MilestoneStatus.FUNDED, MilestoneStatus.DISPUTED):
         return RedirectResponse(f"/projects/{m.project_id}", status_code=303)
 
+    # --- validation: reject empty/whitespace-only submissions before they
+    # ever reach the AI layer, rather than letting the AI "discover" that
+    # the submission is empty via a flag. Fail fast, fail cheap. ---
+    link_clean = (deliverable_link or "").strip()
+    note_clean = (deliverable_note or "").strip()
+    if len(link_clean) < 4 or len(note_clean) < 3:
+        log_event(
+            db, m, "freelancer", "deliverable_rejected_at_route",
+            "Submission rejected: link or note too short/empty to process",
+        )
+        db.commit()
+        return RedirectResponse(f"/projects/{m.project_id}", status_code=303)
+
+    is_resubmission = m.status == MilestoneStatus.DISPUTED
     m.deliverable_link = deliverable_link
     m.deliverable_note = deliverable_note
 
     old_status = m.status
-    log_event(db, m, "freelancer", "deliverable_submitted",
-              f"link={deliverable_link!r}", from_status=old_status)
+    log_event(
+        db, m, "freelancer",
+        "deliverable_resubmitted" if is_resubmission else "deliverable_submitted",
+        f"link={deliverable_link!r}", from_status=old_status,
+    )
 
     # --- AI review step (advisory only) ---
     review = ai_review.review_deliverable(m.scope_description, deliverable_link, deliverable_note)

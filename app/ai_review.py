@@ -26,6 +26,17 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 _LINK_PATTERN = re.compile(r"https?://\S+")
 
 
+def _stem(word: str) -> str:
+    """Very basic suffix stripping so 'wireframes' matches 'wireframe',
+    'delivered' matches 'delivery', etc. Not linguistically rigorous —
+    just enough to stop obvious plural/tense mismatches from causing a
+    false flag."""
+    for suffix in ("ing", "edly", "ed", "es", "s", "ly"):
+        if word.endswith(suffix) and len(word) - len(suffix) >= 3:
+            return word[: -len(suffix)]
+    return word
+
+
 def _rule_based_flags(scope_description: str, deliverable_link: str, deliverable_note: str) -> list[str]:
     """Deterministic checks — cheap, explainable, and run before any LLM call."""
     flags = []
@@ -35,16 +46,23 @@ def _rule_based_flags(scope_description: str, deliverable_link: str, deliverable
     elif not _LINK_PATTERN.match(deliverable_link.strip()):
         flags.append("link_not_valid_url")
 
-    if not deliverable_note or len(deliverable_note.strip()) < 15:
+    note_clean = (deliverable_note or "").strip()
+    note_too_short = len(note_clean) < 15
+    if note_too_short:
         flags.append("note_too_short")
 
-    # crude scope-keyword overlap check: if the deliverable note shares
-    # almost no vocabulary with the agreed scope, flag it for a human look
-    scope_words = set(re.findall(r"[a-zA-Z]{4,}", scope_description.lower()))
-    note_words = set(re.findall(r"[a-zA-Z]{4,}", (deliverable_note or "").lower()))
+    # Scope-keyword overlap check, softened: a note can legitimately use
+    # different wording than the scope (e.g. "shipped the login flow" vs
+    # scope "user authentication screens") without being suspicious on
+    # its own. We only flag zero overlap when it's ALSO paired with a
+    # short note -- a short note with zero overlap is the actual red flag
+    # (looks like a placeholder), not a detailed note that just phrases
+    # things differently.
+    scope_words = {_stem(w) for w in re.findall(r"[a-zA-Z]{4,}", scope_description.lower())}
+    note_words = {_stem(w) for w in re.findall(r"[a-zA-Z]{4,}", note_clean.lower())}
     if scope_words and note_words:
         overlap = scope_words & note_words
-        if len(overlap) == 0:
+        if len(overlap) == 0 and (note_too_short or len(note_words) <= 4):
             flags.append("low_keyword_overlap_with_scope")
 
     return flags
